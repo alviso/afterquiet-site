@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Afterquiet: measuring residual inhibition of tinnitus to find the best sound</title>
+<meta name="description" content="A design for finding the sound that gives the deepest and longest residual inhibition of tinnitus, by measuring it after every try and letting an optimizer choose the next sound. Sources, safety rules and honest limits.">
+<link rel="canonical" href="https://afterquiet.app/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Afterquiet: measuring residual inhibition of tinnitus to find the best sound">
+<meta property="og:description" content="Play a sound, stop, measure how long the tinnitus stays quieter, choose the next sound. A closed-loop design with sources and safety rules.">
+<meta property="og:url" content="https://afterquiet.app/">
+<meta property="article:published_time" content="2026-10-04">
+<meta name="author" content="Peter Varga">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "@id": "https://afterquiet.app/#article",
+      "headline": "Afterquiet: measuring residual inhibition of tinnitus to find the best sound",
+      "description": "A closed-loop design for finding the sound that gives the deepest and longest residual inhibition of tinnitus.",
+      "datePublished": "2026-10-04",
+      "dateModified": "2026-10-04",
+      "author": {"@id": "https://afterquiet.app/#peter"},
+      "mainEntityOfPage": "https://afterquiet.app/",
+      "about": [
+        {"@type": "MedicalCondition", "name": "Tinnitus"},
+        {"@type": "Thing", "name": "Residual inhibition"}
+      ],
+      "inLanguage": "en"
+    },
+    {
+      "@type": "Person",
+      "@id": "https://afterquiet.app/#peter",
+      "name": "Peter Varga",
+      "jobTitle": "Engineer",
+      "description": "Engineer in Portland, Oregon. MSc in electrical engineering, thirty years of enterprise software.",
+      "url": "https://portlandaiworks.com/",
+      "sameAs": ["https://portlandaiworks.com/", "https://github.com/alviso"]
+    }
+  ]
+}
+</script>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #fbfaf7; --surface: #ffffff; --line: #e4e1d8; --soft: #f1efe8;
+  --text: #17171a; --text2: #4a4944; --muted: #7d7b74;
+  --accent: #1f5f99; --accent-soft: #e6eef6; --area: #cfe0f0; --warn: #8a5a00; --warn-bg: #fdf3dc;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #141414; --surface: #1b1b1b; --line: #2f2e2b; --soft: #222120;
+    --text: #f2f1ec; --text2: #c4c2b8; --muted: #8f8d85;
+    --accent: #6aa8e4; --accent-soft: #1d2a37; --area: #24405c; --warn: #f0c060; --warn-bg: #3a2e12;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #141414; --surface: #1b1b1b; --line: #2f2e2b; --soft: #222120;
+  --text: #f2f1ec; --text2: #c4c2b8; --muted: #8f8d85;
+  --accent: #6aa8e4; --accent-soft: #1d2a37; --area: #24405c; --warn: #f0c060; --warn-bg: #3a2e12;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 18px/1.65 Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+header.top { border-bottom: 1px solid var(--line); }
+header.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px;
+  font: 600 16px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+header.top a { color: var(--text); text-decoration: none; }
+header.top nav a { color: var(--text2); font-weight: 400; font-size: 14px; margin-left: 16px; }
+.hero { padding: 48px 0 8px; }
+.kicker { font: 600 13px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 40px; line-height: 1.15; margin: 12px 0 16px; letter-spacing: -.01em; }
+.lede { font-size: 21px; color: var(--text2); margin: 0 0 20px; }
+.byline { font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--muted); }
+.byline a { color: var(--muted); }
+.status { margin: 24px 0 8px; padding: 14px 18px; border-radius: 10px; background: var(--accent-soft);
+  font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text); }
+.toc { margin: 32px 0; padding: 18px 22px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
+  font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.toc b { display: block; margin-bottom: 6px; }
+.toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 32px; }
+@media (max-width: 600px) { .toc ol { columns: 1; } h1 { font-size: 31px; } body { font-size: 17px; } .lede { font-size: 19px; } }
+.toc a { color: var(--text2); text-decoration: none; } .toc a:hover { color: var(--accent); }
+h2 { font-size: 27px; line-height: 1.25; margin: 56px 0 14px; scroll-margin-top: 16px; }
+h3 { font-size: 20px; margin: 30px 0 8px; }
+p, li { color: var(--text); }
+a { color: var(--accent); }
+ul, ol { padding-left: 24px; }
+li { margin: 4px 0; }
+.note { color: var(--text2); font-size: 16px; }
+.cite { font-size: .72em; vertical-align: super; line-height: 0; text-decoration: none; padding: 0 1px; }
+table { width: 100%; border-collapse: collapse; margin: 16px 0 8px; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--text2); font-weight: 600; background: var(--soft); }
+.tablewrap { overflow-x: auto; }
+figure { margin: 28px 0; padding: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+figure svg { width: 100%; height: auto; display: block; }
+figcaption { margin-top: 10px; font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text2); }
+.flow { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; counter-reset: s;
+  font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.flow li { margin: 0; padding: 12px 12px 12px; border-radius: 10px; background: var(--accent-soft); position: relative; counter-increment: s; }
+.flow li::before { content: counter(s); display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--surface);
+  text-align: center; font-weight: 700; font-size: 13px; line-height: 22px; margin-bottom: 6px; }
+.flow b { display: block; margin-bottom: 2px; }
+.flow span { color: var(--text2); }
+.loopback { margin-top: 10px; font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text2); text-align: center; }
+@media (max-width: 700px) { .flow { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 420px) { .flow { grid-template-columns: 1fr; } }
+.warnbox { margin: 20px 0; padding: 14px 18px; border-radius: 10px; background: var(--warn-bg); border-left: 4px solid var(--warn);
+  font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.warnbox p { margin: 0 0 8px; } .warnbox p:last-child { margin: 0; }
+.refs { font-size: 15px; line-height: 1.55; padding-left: 28px; }
+.refs li { margin: 8px 0; color: var(--text2); }
+footer { margin-top: 64px; padding: 28px 0 48px; border-top: 1px solid var(--line);
+  font: 14px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text2); }
+footer a { color: var(--text2); }
+.svg-text { font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: var(--text2); }
+.svg-strong { font: 600 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: var(--text); }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><a href="/">Afterquiet</a><nav><a href="#how">How it works</a><a href="#safety">Safety</a><a href="#sources">Sources</a></nav></div></header>
+
+<main class="wrap">
+<section class="hero">
+  <div class="kicker">Design document</div>
+  <h1>Finding the sound that keeps my tinnitus quiet the longest</h1>
+  <p class="lede">After a sound near the tinnitus pitch stops, tinnitus often goes quieter for a while. This is called residual inhibition. Afterquiet measures that quiet after every try and uses the result to choose the next sound.</p>
+  <div class="byline">By <a href="https://portlandaiworks.com/">Peter Varga</a> · Portland, Oregon · 4 October 2026</div>
+  <div class="status"><b>Status:</b> design plus a working prototype on a laptop. The prototype has been tested with a simulated listener, not yet with my own ears. I will update this page with what I find, including if it does not work.</div>
+</section>
+
+<nav class="toc" aria-label="Contents">
+  <b>Contents</b>
+  <ol>
+    <li><a href="#why">Why I am building this</a></li>
+    <li><a href="#ri">What residual inhibition is</a></li>
+    <li><a href="#not">What I am not building</a></li>
+    <li><a href="#prior">What already exists</a></li>
+    <li><a href="#research">What the research suggests</a></li>
+    <li><a href="#how">How the loop works</a></li>
+    <li><a href="#measure">Measurements before the loop</a></li>
+    <li><a href="#score">The score</a></li>
+    <li><a href="#optimizer">How the next sound is chosen</a></li>
+    <li><a href="#safety">Safety rules</a></li>
+    <li><a href="#validate">How I will know if it works</a></li>
+    <li><a href="#limits">Status and limits</a></li>
+    <li><a href="#open">Open questions</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<h2 id="why">Why I am building this</h2>
+<p>I have tinnitus. My first attempt at a tool was a masking and pitch-matching app. It did not work well. Masking covers the tinnitus while the sound plays, and that is all. There was nothing to measure and nothing to improve.</p>
+<p>Pitch matching was also unreliable for me. My match moved around from one day to the next, and it was easy to land an octave off. So I stopped treating a single pitch match as the answer.</p>
+<p>This second attempt is built around an effect I can actually measure: how much quieter the tinnitus gets after a sound stops, and for how long. If that can be measured every time, then the search for the best sound becomes a normal optimization problem.</p>
+
+<h2 id="ri">What residual inhibition is</h2>
+<p>Residual inhibition (RI) is the temporary suppression of tinnitus after a sound is switched off. The usual clinical test plays noise at about 10 dB above the minimum masking level for 30 to 60 seconds, then measures how long the tinnitus takes to come back.<a class="cite" href="#s-protocol">[1]</a></p>
+<p>For most people it lasts seconds to a minute. Sometimes it lasts longer.<a class="cite" href="#s-hlh">[2]</a> Not everyone gets it.</p>
+<p>The important part for me is that RI is something you notice yourself, right after the sound stops. You can rate it on a slider as it fades. That gives a number after every try, and masking never gave me that.</p>
+
+<figure>
+  <svg viewBox="0 0 620 300" role="img" aria-labelledby="fig1t fig1d">
+    <title id="fig1t">An example residual inhibition curve</title>
+    <desc id="fig1d">Loudness starts at a baseline of 6, drops to 2 right after the sound stops, then recovers to baseline over about a minute. The shaded area between baseline and the curve is the score.</desc>
+    <line x1="60" y1="230" x2="600" y2="230" stroke="var(--line)"/>
+    <line x1="60" y1="30" x2="60" y2="230" stroke="var(--line)"/>
+    <text x="52" y="234" text-anchor="end" class="svg-text">0</text>
+    <text x="52" y="134" text-anchor="end" class="svg-text">5</text>
+    <text x="52" y="34" text-anchor="end" class="svg-text">10</text>
+    <text x="20" y="130" text-anchor="middle" class="svg-text" transform="rotate(-90 20 130)">loudness</text>
+    <path d="M60,110 C70,110 76,190 92,190 C160,190 280,142 370,122 C396,116 430,110 450,110 Z" fill="var(--area)"/>
+    <line x1="60" y1="110" x2="600" y2="110" stroke="var(--muted)" stroke-dasharray="5 5"/>
+    <text x="598" y="102" text-anchor="end" class="svg-text">baseline before the sound</text>
+    <path d="M60,110 C70,110 76,190 92,190 C160,190 280,142 370,122 C396,116 430,110 450,110 L600,110" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round"/>
+    <line x1="92" y1="112" x2="92" y2="188" stroke="var(--text)" stroke-width="1.5"/>
+    <text x="100" y="160" class="svg-strong">depth</text>
+    <text x="170" y="134" class="svg-strong">area = score</text>
+    <line x1="60" y1="256" x2="370" y2="256" stroke="var(--text)" stroke-width="1.5"/>
+    <line x1="60" y1="250" x2="60" y2="262" stroke="var(--text)" stroke-width="1.5"/>
+    <line x1="370" y1="250" x2="370" y2="262" stroke="var(--text)" stroke-width="1.5"/>
+    <line x1="370" y1="122" x2="370" y2="250" stroke="var(--muted)" stroke-dasharray="2 4"/>
+    <text x="215" y="282" text-anchor="middle" class="svg-text">duration: until loudness is back to 90% of baseline</text>
+    <text x="60" y="20" class="svg-text">sound stops here (time 0)</text>
+  </svg>
+  <figcaption>Figure 1. What one trial produces. The listener keeps a slider matched to the tinnitus loudness as it comes back. Depth, duration and the shaded area all come from that curve.</figcaption>
+</figure>
+
+<h2 id="not">What I am not building</h2>
+<p>I am not building phase cancellation or "anti-phase" sound. The idea comes up often, so here is why I left it out.</p>
+<p>Most tinnitus is subjective. There is no sound wave in the ear canal to cancel. The tinnitus is activity in the auditory pathway itself. Sound played into the ear goes through the cochlea and can only add activity. On top of that, above about 4 kHz, where most tinnitus sits, the auditory nerve hardly follows the phase of a sound, so the tinnitus has no phase to invert.</p>
+<p>A commercial device tried it. An open trial without a control group reported lower loudness ratings.<a class="cite" href="#s-phase1">[3]</a> A follow-up study by the same Antwerp group found that phase shifting "did not lead to significant sound cancelling", and in patients with tonal tinnitus, loudness and annoyance went up.<a class="cite" href="#s-phase2">[4]</a></p>
+<p class="note">The exception is objective tinnitus from spontaneous otoacoustic emissions, where a real sound can be picked up with a sensitive in-ear microphone. That is a different situation and out of scope for now.</p>
+
+<h2 id="prior">What already exists</h2>
+<div class="tablewrap"><table>
+  <tr><th>What</th><th>What it does</th><th>What it does not do</th></tr>
+  <tr><td>McMaster HNP Lab tools (Larry Roberts)</td><td>Computer tools that measure the tinnitus spectrum and the depth and duration of RI. Licensed in 2010, free for research use.<a class="cite" href="#s-mcmaster">[5]</a></td><td>Measurement, not a search for the best sound for one person.</td></tr>
+  <tr><td>Quiescence</td><td>Desktop software built on RI. Showed early promise.</td><td>Discontinued.<a class="cite" href="#s-hlh">[2]</a></td></tr>
+  <tr><td>My Practical Tinnitus (iOS)</td><td>A free self-help app. Includes an RI test with digital tones, next to pitch matching and sound therapy guidance.<a class="cite" href="#s-mpt">[6]</a></td><td>RI is one feature. No optimization.</td></tr>
+  <tr><td>VA and Duke hearing aid pilot (2023)</td><td>20 adults wore hearing aids for two months, streaming an individually customized RI sound from a phone app all waking hours. Questionnaire scores (TFI) improved and stayed improved through the wash-out period. Measured loudness did not change significantly.<a class="cite" href="#s-va">[7]</a></td><td>The sound was set at the clinic, then fixed. It was not tuned trial by trial.</td></tr>
+</table></div>
+<p>The gap I see: none of these keep searching the sound parameters using the person's own measured RI, try after try. That closed loop is what Afterquiet adds.</p>
+
+<h2 id="research">What the research suggests as a starting point</h2>
+<ol>
+  <li><b>Use band noise centred in the hearing-loss region, not just the pitch match.</b> In two McMaster cohorts (90 people), the tinnitus spectrum and the RI depth and duration both followed the region of hearing loss in the audiogram.<a class="cite" href="#s-roberts">[8]</a> So the pitch match is only a starting point for the search.</li>
+  <li><b>Start from the standard clinical setting:</b> about 10 dB above the minimum masking level, for about 60 seconds.<a class="cite" href="#s-protocol">[1]</a></li>
+  <li><b>Amplitude modulation is worth trying, but it is not a sure win.</b> 10 Hz modulated sounds produced short-term suppression in one Regensburg study.<a class="cite" href="#s-neff">[9]</a> In a later direct comparison, modulated noise was not better than unmodulated noise matched to the tinnitus. Noise worked better for people whose tinnitus sounds like noise.<a class="cite" href="#s-schoiss">[10]</a> So modulation is an optional part of the search, not the default.</li>
+  <li><b>Do not depend on one pitch match.</b> Use a spectrum of similarity ratings instead, McMaster style.</li>
+</ol>
+
+<h2 id="how">How the loop works</h2>
+<ol class="flow">
+  <li><b>Rate baseline</b><span>How loud is it right now, 0 to 10?</span></li>
+  <li><b>Listen</b><span>A sound plays for 30 to 90 s. Its settings are hidden.</span></li>
+  <li><b>Track it</b><span>Keep a slider matched to the tinnitus as it comes back, sampled 10 times a second.</span></li>
+  <li><b>Score</b><span>The area of the dip, relative to baseline.</span></li>
+  <li><b>Choose next</b><span>The optimizer picks the next sound from all scores so far.</span></li>
+</ol>
+<p class="loopback">Rest until the tinnitus is fully back, then repeat from step 1.</p>
+
+<h3>The sounds</h3>
+<div class="tablewrap"><table>
+  <tr><th>Setting</th><th>Range</th><th>Notes</th></tr>
+  <tr><td>Type</td><td>pure tone, band noise, either one amplitude modulated</td><td>Start with tone and band noise.</td></tr>
+  <tr><td>Centre frequency</td><td>250 Hz to 16 kHz, on a log scale</td><td>Search range comes from the tinnitus spectrum.</td></tr>
+  <tr><td>Bandwidth</td><td>1/12 to 1 octave</td><td>Noise only. A tone is treated as zero bandwidth.</td></tr>
+  <tr><td>Level</td><td>0 to 20 dB above the minimum masking level</td><td>Always under a hard ceiling (see Safety).</td></tr>
+  <tr><td>Duration</td><td>30 to 90 s</td><td>Default 60 s.</td></tr>
+  <tr><td>Ear</td><td>left, right, both</td><td>Fixed at first, searchable later.</td></tr>
+  <tr><td>Modulation rate and depth</td><td>2 to 40 Hz, 0 to 100 %</td><td>Depth 0 means no modulation, so it is one family of sounds, not a separate one.</td></tr>
+</table></div>
+<p>Every sound has 20 ms raised-cosine ramps at the start and end, so there are no clicks. Noise is made by filtering white noise in the frequency domain and is normalized to the same RMS level, so a wide band and a narrow band at the same setting have the same energy.</p>
+
+<h3>One trial</h3>
+<ol>
+  <li>Rate the tinnitus as it is now. If it is not audible, there is nothing to measure, so the trial does not start.</li>
+  <li>The sound plays. I do not see its settings.</li>
+  <li>When it stops, the slider starts at the baseline. I move it down to where the tinnitus is, and keep it matched as it comes back. Arrow keys work, so I can keep my eyes closed.</li>
+  <li>The trial ends when the slider has been back at baseline for 3 seconds, or after 3 minutes.</li>
+  <li>Rest. The tool enforces a minimum rest, and I only continue when the tinnitus is fully back.</li>
+</ol>
+<p>About 15 % of trials are controls: either silence, or noise two octaves away from the tinnitus region. They are never shown as controls during the session. They tell me how much of any "effect" is just expectation or normal fluctuation.</p>
+
+<h2 id="measure">Measurements before the loop</h2>
+<ul>
+  <li><b>Quick audiogram.</b> A pulsing tone at each frequency, both ears, turned down until just audible. This shows where the hearing loss is. It is not a clinical audiogram.</li>
+  <li><b>Tinnitus spectrum.</b> Short sounds at 11 frequencies from 500 Hz to 16 kHz, each twice, in random order. For each one I rate how similar it is to my tinnitus. The search range is where the ratings are at least half of the peak, plus half an octave on each side.</li>
+  <li><b>Minimum masking level (MML).</b> The lowest level of a sound that just covers the tinnitus, measured at the frequencies the search needs. Levels in trials are set relative to it.</li>
+</ul>
+
+<h2 id="score">The score</h2>
+<p>From each response curve I compute three numbers:</p>
+<ul>
+  <li><b>Depth:</b> the lowest point compared with baseline.</li>
+  <li><b>Duration:</b> time from the end of the sound until loudness is back to 90 % of baseline.</li>
+  <li><b>Area:</b> the area between the baseline and the curve.</li>
+</ul>
+<p>The area is the main score, because it combines depth and duration. I divide it by the baseline, so a trial on a loud day and a trial on a quiet day can be compared. The unit is "fraction of baseline times seconds". Staying at half the baseline for 60 seconds would score 30.</p>
+
+<h2 id="optimizer">How the next sound is chosen</h2>
+<p>Each trial takes 2 to 5 minutes including rest, so a session might hold 10 to 20 trials. The method has to learn from very few data points. That is why I use Bayesian optimization.</p>
+<ul>
+  <li><b>Model.</b> A Gaussian process learns a smooth guess of "score for any sound setting", with a measure of how uncertain that guess is. It treats every rating as noisy, which it is.</li>
+  <li><b>Choice.</b> The next sound is the one with the highest expected improvement over the best so far. This balances trying near the current best and checking areas it knows little about.</li>
+  <li><b>Start.</b> The first trials are fixed: band noise, half an octave wide, 10 dB above MML, 60 s, spread across the search range.</li>
+  <li><b>Repeats.</b> About one trial in five repeats the current best sound. A result that does not repeat is not a result.</li>
+  <li><b>Level is a constraint.</b> RI generally grows with level, so an optimizer left alone would just turn the volume up. The level is capped by a hard ceiling, whatever the model wants.</li>
+</ul>
+<p>Before trying it on myself, I tested the loop with a simulated listener, using an invented response pattern. After 25 trials, the sound it recommended scored 32.6 on average against 25.1 for random search (best possible about 39.6). That shows the machinery works. It says nothing about real tinnitus.</p>
+
+<h2 id="safety">Safety rules</h2>
+<p>These are enforced by the program itself, not just shown in the interface.</p>
+<ul>
+  <li><b>Hard level ceiling.</b> Every sound is measured after it is generated, and refused if it is over the ceiling. The default ceiling is 85 dB SPL (estimated) and it can never be set above 90. The playback side can only make sounds quieter.</li>
+  <li><b>Fixed output.</b> Levels only mean something at one volume setting with one pair of earphones. The tool records both at calibration and refuses to play if the system volume or the output device has changed, or if the output is muted. It refuses the built-in speakers entirely.</li>
+  <li><b>Daily dose.</b> It adds up the estimated sound exposure for the day (85 dB for 8 hours is 100 %, with a 3 dB exchange rate) and stops at half of that.</li>
+  <li><b>Louder is a stop sign.</b> If a sound makes the tinnitus louder than before, the session pauses, that frequency region is removed from the search, and I have to confirm before continuing.</li>
+  <li><b>No sudden starts.</b> Every sound ramps in.</li>
+</ul>
+<p class="note">The decibel numbers are estimates. Without a measurement of the earphones, the tool assumes they are louder than they probably are, so the ceiling and the dose err on the safe side.</p>
+<div class="warnbox">
+  <p><b>This is a personal experiment, not a medical device or medical advice.</b> It does not treat tinnitus. Residual inhibition is temporary.</p>
+  <p>See a doctor or audiologist first if your tinnitus is new, one-sided, pulsing in time with your heartbeat, or came with sudden hearing loss or dizziness. Some of those need prompt care.</p>
+</div>
+
+<h2 id="validate">How I will know if it works</h2>
+<ul>
+  <li><b>Test-retest.</b> Re-run the best few sounds on different days. If the best sound only wins on the day it was found, it was noise.</li>
+  <li><b>Against controls.</b> Compare the best sound with the control trials. One honest caveat: picking the top trials after the fact and then comparing them with controls flatters the result. The fair test is the best sound against controls on new days.</li>
+  <li><b>Blinding, as far as possible.</b> Trial order is random and settings stay hidden until the trial is over.</li>
+</ul>
+
+<h2 id="limits">Status and limits</h2>
+<p>The prototype runs on a laptop with wired in-ear monitors: a small Python program generates the sounds, runs the optimizer and stores the data locally, and the browser plays the sounds and records the slider. The code is not public yet.</p>
+<ul>
+  <li>Levels are digital levels at a fixed volume, not dB HL. Above about 12 kHz, results depend a lot on the earphones.</li>
+  <li>The masking level for a given trial is interpolated from nearby measurements. Bandwidth also changes it a bit, and that is not modelled.</li>
+  <li>Day-to-day drift is only handled by dividing by the baseline. The time of day is stored with every trial for later.</li>
+  <li>It is one person. Whatever I find is about my tinnitus. The method might carry over to other people. Specific settings will not.</li>
+</ul>
+<p>If a stable best sound turns up, the next step is something portable: a phone app over any headset first, perhaps later open-firmware earbuds or an open hearing-aid platform.</p>
+
+<h2 id="open">Open questions</h2>
+<ul>
+  <li>Should amplitude modulation be in the search from the start, or only after a first pass finds a region? Right now it is off by default.</li>
+  <li>How to model day-to-day drift. Time of day as an extra input to the model is one option.</li>
+  <li>Whether a short daily routine using the best sound changes anything over weeks, which the VA and Duke pilot hints at for distress but not for loudness.</li>
+  <li>A check for spontaneous otoacoustic emissions with an in-ear microphone, to rule out the objective kind.</li>
+</ul>
+<p>If you work on tinnitus and see something wrong here, I would like to hear it: <a href="mailto:peter@portlandaiworks.com">peter@portlandaiworks.com</a>.</p>
+
+<h2 id="sources">Sources</h2>
+<ol class="refs">
+  <li id="s-protocol">Clinical RI measurement: 30 or 60 s of noise at 10 dB above the minimum masking level, then time until the tinnitus returns. Described in <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10872653/">Quinn et al. 2023</a>, citing Henry and Meikle (2000).</li>
+  <li id="s-hlh">Hearing Loss Help, <a href="https://hearinglosshelp.com/blog/residual-inhibition-can-temporarily-eliminate-tinnitus/">Residual inhibition can temporarily eliminate tinnitus</a> (also on Quiescence).</li>
+  <li id="s-phase1">Vermeire K, Heyndrickx K, De Ridder D, Van de Heyning P. <a href="https://pubmed.ncbi.nlm.nih.gov/18225610/">Phase-shift tinnitus treatment: an open prospective clinical trial.</a> B-ENT 2007;3 Suppl 7:65-9.</li>
+  <li id="s-phase2">Meeus O, Heyndrickx K, Lambrechts P, De Ridder D, Van de Heyning P. <a href="https://pubmed.ncbi.nlm.nih.gov/19937045/">Phase-shift treatment for tinnitus of cochlear origin.</a> Eur Arch Otorhinolaryngol 2010;267(6):881-8. Trial record: <a href="https://clinicaltrials.gov/study/NCT00833950">NCT00833950</a>.</li>
+  <li id="s-mcmaster">McMaster HNP Lab, <a href="https://hnplab.mcmaster.ca/software_license_frame.html">tinnitus measurement software licensed</a>.</li>
+  <li id="s-mpt"><a href="https://apps.apple.com/app/id1512600147">My Practical Tinnitus</a>, App Store.</li>
+  <li id="s-va">Quinn CM, Vachhani JJ, Thielman EJ, Kulinski D, Sonstroem A, Henry JA, Smith SL. <a href="https://pubmed.ncbi.nlm.nih.gov/38370522/">A pilot study to evaluate a residual inhibition technique in hearing aids for suppression of tinnitus.</a> Semin Hear 2023;45(1):123-140.</li>
+  <li id="s-roberts">Roberts LE, Moffat G, Baumann M, Ward LM, Bosnyak DJ. <a href="https://link.springer.com/doi/10.1007/s10162-008-0136-9">Residual inhibition functions overlap tinnitus spectra and the region of auditory threshold shift.</a> JARO 2008;9:417-435.</li>
+  <li id="s-neff">Neff P, Michels J, Meyer M, Schecklmann M, Langguth B, Schlee W. <a href="https://www.frontiersin.org/articles/10.3389/fnagi.2017.00130/full">10 Hz amplitude modulated sounds induce short-term tinnitus suppression.</a> Front Aging Neurosci 2017;9:130.</li>
+  <li id="s-schoiss">Schoisswohl S, Arnds J, Schecklmann M, Langguth B, Schlee W, Neff P. <a href="https://doi.org/10.1159/000504593">Amplitude modulated noise for tinnitus suppression in tonal and noise-like tinnitus.</a> Audiol Neurotol 2019;24(6):309-321.</li>
+</ol>
+</main>
+
+<footer><div class="wrap">
+  <p><b>Peter Varga</b> is an engineer in Portland, Oregon, with an MSc in electrical engineering and thirty years of enterprise software. More at <a href="https://portlandaiworks.com/">portlandaiworks.com</a> and <a href="https://github.com/alviso">github.com/alviso</a>.</p>
+  <p>Published 4 October 2026. Not medical advice.</p>
+</div></footer>
+</body>
+</html>

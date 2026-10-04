@@ -1,0 +1,11 @@
+# afterquiet.app
+
+Public design document for Afterquiet: a closed-loop search for the sound that gives the deepest and longest residual inhibition of tinnitus.
+
+Plain static HTML served by GitHub Pages at https://afterquiet.app (CNAME). afterquiet.org redirects here through a Cloudflare redirect rule.
+
+Preview locally:
+
+```bash
+python3 -m http.server 8790
+```
