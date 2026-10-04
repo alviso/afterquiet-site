@@ -12,6 +12,14 @@
 <meta property="og:title" content="Afterquiet: measuring residual inhibition of tinnitus to find the best sound">
 <meta property="og:description" content="Play a sound, stop, measure how long the tinnitus stays quieter, choose the next sound. How it works, the research behind it, and the safety rules.">
 <meta property="og:url" content="https://afterquiet.app/">
+<meta property="og:site_name" content="Afterquiet">
+<meta property="og:image" content="https://afterquiet.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Afterquiet: find the sound that keeps your tinnitus quieter for longer. A chart shows tinnitus going quieter after a sound stops.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Afterquiet: measuring residual inhibition of tinnitus to find the best sound">
+<meta name="twitter:image" content="https://afterquiet.app/og.png">
 <meta property="article:published_time" content="2026-10-04">
 <meta property="article:modified_time" content="2026-10-04">
 <meta name="author" content="Peter Varga">
@@ -32,7 +40,8 @@
         {"@type": "MedicalCondition", "name": "Tinnitus"},
         {"@type": "Thing", "name": "Residual inhibition"}
       ],
-      "inLanguage": "en"
+      "inLanguage": "en",
+      "image": "https://afterquiet.app/og.png"
     },
     {
       "@type": "Person",
@@ -69,15 +78,15 @@ header nav a:hover { color: var(--blue); }
 @media (max-width: 760px) { header nav { display: none; } }
 
 /* hero */
-.hero { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: center; padding: 64px 0 40px; }
+.hero { display: grid; grid-template-columns: 1.15fr 1fr; gap: 48px; align-items: center; padding: 64px 0 40px; }
 .pill { display: inline-block; font: 600 13px/1 var(--sans); padding: 7px 12px; border-radius: 99px; background: var(--orange-soft); color: #b2461c; }
-h1 { font: 700 50px/1.08 var(--sans); letter-spacing: -.02em; margin: 18px 0 18px; }
+h1 { font: 800 clamp(42px, 5.6vw, 70px)/1.03 var(--sans); letter-spacing: -.03em; margin: 18px 0 22px; }
 .lede { font-size: 21px; color: var(--ink2); margin: 0 0 22px; }
 .byline { font: 14px/1.5 var(--sans); color: var(--muted); }
 .byline a { color: var(--muted); }
 .cta { display: inline-block; margin-top: 18px; font: 600 15px/1 var(--sans); padding: 13px 18px; border-radius: 10px; background: var(--blue); color: #fff; text-decoration: none; }
 .cta.ghost { background: transparent; color: var(--blue); border: 1.5px solid var(--blue); margin-left: 8px; }
-@media (max-width: 900px) { .hero { grid-template-columns: 1fr; gap: 24px; padding-top: 36px; } h1 { font-size: 36px; } }
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; gap: 24px; padding-top: 36px; } h1 { font-size: 42px; } }
 
 /* sections */
 section { padding: 56px 0; border-top: 1px solid var(--line); }
